@@ -1,0 +1,44 @@
+{
+  "name": "investment-dashboard",
+  "version": "1.0.0",
+  "description": "Dashboard para tracking de investimentos com integra\u00e7\u00e3o de APIs gratuitas",
+  "main": "index.html",
+  "scripts": {
+    "start": "http-server . -p 8080",
+    "dev": "http-server . -p 3000 -c-1",
+    "build": "echo 'Build completed - static files ready'",
+    "test": "echo 'No tests specified'",
+    "docker:build": "docker build -t investment-dashboard .",
+    "docker:run": "docker run -p 8080:8080 investment-dashboard",
+    "docker:compose:up": "docker-compose up -d",
+    "docker:compose:down": "docker-compose down",
+    "docker:compose:logs": "docker-compose logs -f",
+    "integrate-api": "node api-integration.js"
+  },
+  "keywords": [
+    "investment",
+    "dashboard",
+    "crypto",
+    "etf",
+    "euribor",
+    "portfolio",
+    "tracking"
+  ],
+  "author": "Investment Dashboard",
+  "license": "MIT",
+  "dependencies": {
+    "http-server": "^14.1.1",
+    "dotenv": "^16.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/investment-dashboard"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  }
+}
