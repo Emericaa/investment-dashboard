@@ -11,7 +11,7 @@ if ! command -v docker &> /dev/null; then
     exit 1
 fi
 
-if ! command -v docker-compose &> /dev/null; then
+if ! command -v docker compose &> /dev/null; then
     echo "❌ Docker Compose não instalado"
     exit 1
 fi
@@ -28,14 +28,14 @@ if [ ! -f ".env" ]; then
 fi
 
 # Parar containers existentes
-docker-compose down 2>/dev/null || true
+docker compose down 2>/dev/null || true
 
 # Build e start
 echo "🔨 Building application..."
-docker-compose build
+docker compose build
 
 echo "▶️  Starting application..."
-docker-compose up -d
+docker compose up -d
 
 # Aguardar start
 echo "⏳ Aguardando aplicação iniciar..."
