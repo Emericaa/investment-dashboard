@@ -1,57 +1,50 @@
 #!/bin/bash
-# Script de deployment para Dashboard de Investimentos
+
+# Investment Dashboard - Deploy Simples
 set -e
 
-echo "🚀 Iniciando deployment do Dashboard de Investimentos..."
+echo "🚀 Deploying Investment Dashboard..."
 
-# Verificar se Docker está instalado
+# Verificar Docker
 if ! command -v docker &> /dev/null; then
-    echo "❌ Docker não está instalado. Por favor instale o Docker primeiro."
+    echo "❌ Docker não instalado"
     exit 1
 fi
 
-# Verificar se Docker Compose está instalado
 if ! command -v docker-compose &> /dev/null; then
-    echo "❌ Docker Compose não está instalado. Por favor instale o Docker Compose primeiro."
+    echo "❌ Docker Compose não instalado"
     exit 1
 fi
 
-# Verificar se .env existe
-if [ ! -f .env ]; then
-    echo "⚠️  Ficheiro .env não encontrado. Copiando template..."
-    cp .env.example .env
-    echo "📝 Por favor configure as suas chaves API no ficheiro .env"
-    echo "🔧 Edite o ficheiro .env e execute novamente este script"
-    exit 1
+# Configurar .env se não existir
+if [ ! -f ".env" ]; then
+    if [ -f ".env.example" ]; then
+        cp .env.example .env
+        echo "⚠️  Ficheiro .env criado. Configure as APIs antes de continuar."
+        echo "   1. Alpha Vantage: https://www.alphavantage.co/support/#api-key"
+        echo "   2. API Ninjas: https://api.api-ninjas.com/"
+        read -p "Pressione Enter após configurar .env..."
+    fi
 fi
 
 # Parar containers existentes
-echo "🛑 Parando containers existentes..."
-docker-compose down || true
+docker-compose down 2>/dev/null || true
 
-# Build da nova imagem
-echo "🔨 Building nova imagem..."
-docker-compose build --no-cache
+# Build e start
+echo "🔨 Building application..."
+docker-compose build
 
-# Iniciar aplicação
-echo "▶️  Iniciando aplicação..."
+echo "▶️  Starting application..."
 docker-compose up -d
 
-# Aguardar health check
-echo "⏳ Aguardando aplicação ficar pronta..."
-sleep 30
+# Aguardar start
+echo "⏳ Aguardando aplicação iniciar..."
+sleep 10
 
-# Verificar se está a funcionar
-if curl -f http://localhost:8080/health > /dev/null 2>&1; then
-    echo "✅ Dashboard deployment concluído com sucesso!"
-    echo "🌐 Aceda a: http://localhost:8080"
-    echo "🏥 Health check: http://localhost:8080/health"
+# Verificar se está funcionando
+if curl -s -f http://localhost:8080/health &>/dev/null; then
+    echo "✅ Dashboard disponível em: http://localhost:8080"
 else
-    echo "❌ Falha no health check. Verificando logs..."
-    docker-compose logs investment-dashboard
-    exit 1
+    echo "❌ Erro no health check. Verificando logs:"
+    docker-compose logs --tail=20
 fi
-
-# Mostrar status
-echo "📊 Status dos containers:"
-docker-compose ps

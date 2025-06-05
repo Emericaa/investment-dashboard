@@ -1,15 +1,10 @@
-# Docker Compose para Dashboard de Investimentos
-# Configuração para ambiente de produção
-
 version: '3.8'
 
 services:
-  # Dashboard principal da aplicação
   investment-dashboard:
     build:
       context: .
       dockerfile: Dockerfile
-      target: production
     container_name: investment-dashboard
     restart: unless-stopped
     ports:
@@ -17,97 +12,20 @@ services:
     environment:
       - NODE_ENV=production
       - TZ=Europe/Lisbon
-    networks:
-      - dashboard-network
-    volumes:
-      # Volume para logs persistentes
-      - dashboard-logs:/var/log/nginx
-      - dashboard-cache:/var/cache/nginx
+      - ALPHA_VANTAGE_API_KEY=${ALPHA_VANTAGE_API_KEY:-}
+      - API_NINJAS_KEY=${API_NINJAS_KEY:-}
+      - COINGECKO_API_KEY=${COINGECKO_API_KEY:-}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
-    labels:
-      - "com.investment.dashboard=main"
-      - "com.investment.dashboard.version=1.0.0"
     deploy:
       resources:
         limits:
-          cpus: '0.5'
-          memory: 512M
-        reservations:
-          cpus: '0.25'
+          cpus: '0.3'
           memory: 256M
 
-  # Serviço de monitorização (opcional)
-  nginx-exporter:
-    image: nginx/nginx-prometheus-exporter:latest
-    container_name: nginx-exporter
-    restart: unless-stopped
-    ports:
-      - "9113:9113"
-    command:
-      - -nginx.scrape-uri=http://investment-dashboard:8080/health
-    networks:
-      - dashboard-network
-    depends_on:
-      - investment-dashboard
-    profiles:
-      - monitoring
-
-  # Proxy reverso para produção (opcional)
-  reverse-proxy:
-    image: nginx:alpine
-    container_name: dashboard-proxy
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./proxy/nginx.conf:/etc/nginx/nginx.conf:ro
-      - proxy-cache:/var/cache/nginx
-      - ./ssl:/etc/nginx/ssl:ro  # Para certificados SSL
-    networks:
-      - dashboard-network
-    depends_on:
-      - investment-dashboard
-    profiles:
-      - production
-
-volumes:
-  # Volume para logs persistentes
-  dashboard-logs:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ./logs
-
-  # Volume para cache do nginx
-  dashboard-cache:
-    driver: local
-
-  # Volume para cache do proxy
-  proxy-cache:
-    driver: local
-
 networks:
-  # Rede isolada para os serviços
-  dashboard-network:
+  default:
     driver: bridge
-    ipam:
-      config:
-        - subnet: 172.20.0.0/16
-
-# Configurações globais
-x-logging: &default-logging
-  driver: "json-file"
-  options:
-    max-size: "10m"
-    max-file: "3"
-
-# Aplicar logging a todos os serviços
-x-common-config: &common-config
-  logging: *default-logging
